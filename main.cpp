@@ -7,35 +7,42 @@ using namespace std;
 class Solution {
 public:
     int findCheapestPrice(int n, vector<vector<int>>& flights, int src, int dst, int k) {
-        vector<vector<pair<int, int>>> graph(n+1);
+        vector<vector<pair<int, int>>> adjList(n+1);
 
         for (auto flight : flights) {
-            graph[flight[0]].push_back({flight[1], flight[2]});
+            adjList[flight[0]].push_back({flight[1], flight[2]});
         }
 
-        int answer = INT_MAX;
         queue<pair<int, int>> q;
-        int stop = 0;
         q.push({src, 0});
-        while (!q.empty() && stop++ <= k) {
-            int size = q.size(); // We need to save this here; size will be changed
+
+        vector<int> dist(n, INT_MAX);
+        dist[src] = 0;
+        int stops = 0;
+
+        while (stops <= k && !q.empty()) {
+            int size = q.size();
             for (int i = 0; i < size; i++) {
                 auto curr = q.front();
                 q.pop();
 
-                for (auto neighbor : graph[curr.first]) {
-                    int cost = neighbor.second + curr.second;
-                    if (answer < cost) continue;
+                int apt = curr.first;
+                int cost = curr.second;
 
-                    q.push({neighbor.first, cost});
+                for (auto neighbor : adjList[apt]) {
+                    int nextApt = neighbor.first;
+                    int nextCost = neighbor.second;
 
-                    if (neighbor.first == dst) {
-                        answer = min(answer, cost);
+                    if (cost + nextCost < dist[nextApt]) {
+                        dist[nextApt] = cost + nextCost;
+                        q.push({nextApt, cost+nextCost});
                     }
                 }
             }
+            stops++;
         }
-        return answer == INT_MAX ? -1 : answer;
+        if (dist[dst] == INT_MAX) return -1;
+        return dist[dst];
     }
 
 
